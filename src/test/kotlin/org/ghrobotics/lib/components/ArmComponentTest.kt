@@ -31,6 +31,10 @@ class ArmComponentTest {
 
         arm.useState()
 
+        arm.updateState()
+
+        println("\n\nNow testing shit\n\n")
+
         println("Current arm pos" + arm.position)
 
         println("Current encoder pos " + arm.motor.encoder.position)
@@ -47,7 +51,7 @@ class ArmComponentTest {
 
     class SimArm(
             override val armKg: Double, override val motor: FalconMotor<Rotation2d>)
-        : ArmComponent(Translation3d.kZero, Translation3d(1.0, 0.0, 0.0)) {
+        : ArmComponent(Translation3d.kZero, Translation3d(0.0, 0.0, 1.0)) {
 
 
 
