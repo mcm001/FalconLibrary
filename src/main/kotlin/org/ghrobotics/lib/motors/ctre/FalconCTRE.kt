@@ -1,9 +1,6 @@
 package org.ghrobotics.lib.motors.ctre
 
-import com.ctre.phoenix.motorcontrol.ControlMode
-import com.ctre.phoenix.motorcontrol.DemandType
-import com.ctre.phoenix.motorcontrol.IMotorController
-import com.ctre.phoenix.motorcontrol.NeutralMode
+import com.ctre.phoenix.motorcontrol.*
 import org.ghrobotics.lib.mathematics.units.SIUnit
 import org.ghrobotics.lib.mathematics.units.nativeunits.NativeUnitModel
 import org.ghrobotics.lib.motors.AbstractFalconMotor
@@ -104,6 +101,11 @@ abstract class FalconCTRE<T : SIUnit<T>>(
         val demand0: Double,
         val demand1Type: DemandType,
         val demand1: Double
+    )
+
+    data class LimitSwitchConfig(
+            val source: RemoteLimitSwitchSource,
+            val limitNormal: LimitSwitchNormal
     )
 
 }
