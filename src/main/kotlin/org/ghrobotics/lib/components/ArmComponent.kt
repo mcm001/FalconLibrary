@@ -7,8 +7,11 @@ import org.ghrobotics.lib.mathematics.threedim.geometry.Translation3d
 import org.ghrobotics.lib.mathematics.units.Rotation2d
 
 abstract class ArmComponent(
-    val armAxleOffset: Translation3d,
-    val armRotationAxis: Translation3d
+        // the position of the axle relative to the *local* coordinate system
+        // this is a cartesian Translation3d
+        val armAxleOffset: Translation3d,
+        // the rotational axis of the arm relative to the *local* coordiante system
+        val armRotationAxis: Translation3d
 ) : MotorComponent<Rotation2d>() {
 
     abstract val armKg: Double
