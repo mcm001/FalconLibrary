@@ -3,8 +3,9 @@ package org.ghrobotics.lib.components
 import edu.wpi.first.wpilibj.Timer
 import org.ghrobotics.lib.mathematics.threedim.geometry.Transform
 import org.ghrobotics.lib.utils.DeltaTime
+import org.team5940.pantry.exparimental.command.SendableSubsystemBase
 
-abstract class RobotComponent {
+abstract class RobotComponent : SendableSubsystemBase() {
 
     // Local Transforms
 
