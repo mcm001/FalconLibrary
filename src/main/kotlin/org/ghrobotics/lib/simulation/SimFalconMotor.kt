@@ -8,14 +8,17 @@ class SimFalconMotor<T : SIUnit<T>> : FalconMotor<T> {
 
     var velocity = 0.0
     override val voltageOutput = 0.0
+    var position = 0.0
 
     override val encoder = object : FalconEncoder<T> {
         override val velocity: Double get() = rawVelocity
         override val position: Double get() = rawPosition
         override val rawVelocity: Double get() = this@SimFalconMotor.velocity
-        override val rawPosition: Double get() = 0.0
+        override val rawPosition: Double get() = temp
 
-        override fun resetPosition(newPosition: Double) {}
+        var temp = 0.0
+
+        override fun resetPosition(newPosition: Double) {temp = newPosition}
     }
 
     override var outputInverted: Boolean
@@ -43,7 +46,9 @@ class SimFalconMotor<T : SIUnit<T>> : FalconMotor<T> {
     }
 
     override fun setPosition(position: Double, arbitraryFeedForward: Double) {
-        TODO("not implemented")
+        println("Setting sim motor to " + position)
+        this.position = position
+        this.encoder.resetPosition(position)
     }
 
     override fun setNeutral() {
