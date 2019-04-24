@@ -14,7 +14,11 @@ plugins {
 repositories {
     jcenter()
     maven { setUrl("http://dl.bintray.com/kyonifer/maven") }
+    maven { setUrl("https://jitpack.io") }
 }
+
+group = "com.github.mcm001"
+version = "0.0.1"
 
 dependencies {
     // Kotlin Standard Library and Coroutines
@@ -29,6 +33,8 @@ dependencies {
 
     // Apache Commons Math
     compile("org.apache.commons", "commons-math3", "3.6.1")
+
+    implementation("com.github.mcm001:pantrycommon:2d570ea774")
 
     // Gson
     compile("com.github.salomonbrys.kotson", "kotson", "2.5.0")
