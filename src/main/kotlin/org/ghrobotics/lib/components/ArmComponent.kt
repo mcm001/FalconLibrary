@@ -18,6 +18,9 @@ abstract class ArmComponent(
 
     override fun updateState() {
 
+        println("update state called!")
+        println("position is $position")
+
         localTransform = Pose3d(
             armAxleOffset,
             Quaternion.fromAxisAngle(position, armRotationAxis)

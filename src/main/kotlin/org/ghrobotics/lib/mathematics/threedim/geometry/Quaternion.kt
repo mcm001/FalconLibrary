@@ -124,6 +124,12 @@ data class Quaternion(
         }
 
         fun fromAxisAngle(angle: Double, axis: Translation3d): Quaternion {
+
+            println("angle is " + angle)
+            println("axis is " + axis)
+
+            println("it work? " + (axis.x*axis.x + axis.y*axis.y + axis.z*axis.z == 1.0) + "\n")
+
             val s = Math.sin(angle * 0.5)
             return Quaternion(
                 Math.cos(angle * 0.5),

@@ -23,6 +23,9 @@ abstract class MotorComponent<T : SIUnit<T>> : RobotComponent() {
     open fun customizeWantedState(wantedState: State): State = wantedState
 
     override fun updateState() {
+
+        println("motor encoder position is ${motor.encoder.position}")
+
         position = motor.encoder.position
         velocity = motor.encoder.velocity
 
@@ -30,6 +33,8 @@ abstract class MotorComponent<T : SIUnit<T>> : RobotComponent() {
     }
 
     override fun useState() {
+
+        println("Using state " + wantedState)
 
         val wantedState = customizeWantedState(wantedState)
         currentState = wantedState
