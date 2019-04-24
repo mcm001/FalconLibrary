@@ -15,37 +15,22 @@ class ArmComponentTest {
 
         val arm = SimArm(0.0, SimFalconMotor<Rotation2d>())
 
-        println("Customizing state...")
-
         arm.wantedState = MotorComponent.State.Position(45.0 / 360.0 * 2.0 * PI)
 
-        println("updating state...")
-
-        arm.updateState()
-
-        println("using state...")
-
-        arm.useState()
-
         arm.updateState()
 
         arm.useState()
 
         arm.updateState()
 
-        println("\n\nNow testing shit\n\n")
+        arm.useState()
 
-        println("Current arm pos" + arm.position)
+        arm.updateState()
 
-        println("Current encoder pos " + arm.motor.encoder.position)
+//        println("arm local angle: " + arm.localTransform.rotation.eulerAngles)
+//        println("expected angle: " + Quaternion.fromEulerAngles(0.0, 45.0 / 360.0 * 2.0 * PI, 0.0).eulerAngles)
 
-        println("arm local transform: " + arm.localTransform)
-
-        println("arm local angle?: " + arm.localTransform.rotation)
-
-        println("expected euler angles" + Quaternion.fromEulerAngles(0.0, 45.0, 0.0))
-
-        assert(false)
+        assert( Quaternion.fromEulerAngles(0.0, 45.0 / 360.0 * 2.0 * PI, 0.0).eulerAngles epsilonEquals  arm.localTransform.rotation.eulerAngles)
 
     }
 

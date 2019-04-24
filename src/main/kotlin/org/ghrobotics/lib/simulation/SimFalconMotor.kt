@@ -46,7 +46,6 @@ class SimFalconMotor<T : SIUnit<T>> : FalconMotor<T> {
     }
 
     override fun setPosition(position: Double, arbitraryFeedForward: Double) {
-        println("Setting sim motor to " + position)
         this.position = position
         this.encoder.resetPosition(position)
     }
