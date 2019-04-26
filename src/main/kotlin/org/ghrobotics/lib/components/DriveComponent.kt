@@ -6,6 +6,7 @@ import org.ghrobotics.lib.mathematics.threedim.geometry.Quaternion
 import org.ghrobotics.lib.mathematics.threedim.geometry.Translation3d
 import org.ghrobotics.lib.mathematics.units.Length
 import org.ghrobotics.lib.subsystems.drive.DifferentialTrackerDriveBase
+import org.ghrobotics.lib.subsystems.drive.TrajectoryTrackerOutput
 import org.ghrobotics.lib.utils.DeltaTime
 import org.ghrobotics.lib.utils.Source
 
@@ -58,6 +59,9 @@ abstract class DriveComponent(
                 leftMotor.setDutyCycle(wantedState.leftOutput())
                 rightMotor.setDutyCycle(wantedState.rightOutput())
             }
+            is State.TrajectoryOutput -> {
+                setOutput(wantedState.output())
+            }
             is State.CustomState -> wantedState.update()
         }
 
@@ -72,6 +76,10 @@ abstract class DriveComponent(
 
         class PercentOutput(val leftOutput: Source<Double>, val rightOutput: Source<Double>) : State() {
             constructor(leftOutput: Double, rightOutput: Double) : this(Source(leftOutput), Source(rightOutput))
+        }
+
+        class TrajectoryOutput(val output : Source<TrajectoryTrackerOutput>) : State() {
+            constructor(output: TrajectoryTrackerOutput) : this(Source(output))
         }
 
         abstract class CustomState : State() {

@@ -7,7 +7,6 @@ import org.ghrobotics.lib.mathematics.epsilonEquals
  * +Y straight up
  * +Z axis toward viewer
  */
-
 data class Translation3d(
     val x: Double,
     val y: Double,
@@ -34,9 +33,13 @@ data class Translation3d(
             z + other.z
         )
 
+    operator fun minus(other: Translation3d) = plus(-other)
+
     operator fun times(quaternion: Quaternion) = quaternion.transform(this)
 
     operator fun times(scalar: Double) = Translation3d(x * scalar, y * scalar, z * scalar)
+
+    operator fun div(scalar: Double) = times(1/scalar)
 
     infix fun epsilonEquals(other: Translation3d) = x epsilonEquals other.x &&
         y epsilonEquals other.y && z epsilonEquals other.z

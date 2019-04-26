@@ -6,7 +6,7 @@ import org.ghrobotics.lib.mathematics.threedim.geometry.Translation3d
 import org.ghrobotics.lib.mathematics.units.Length
 
 abstract class ElevatorComponent(
-    private val elevatorZero: Translation3d
+        open val elevatorZero: Translation3d
 ) : MotorComponent<Length>() {
 
     protected abstract val elevatorKg: Double

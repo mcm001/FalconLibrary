@@ -58,13 +58,9 @@ class SimFalconMotor<T : SIUnit<T>> : FalconMotor<T> {
         get() = TODO("not implemented")
         set(value) {TODO("not implemented")}
 
-    override var motionProfileCruiseVelocity: Double
-        get() = TODO("not implemented")
-        set(value) {TODO("not implemented")}
+    override var motionProfileCruiseVelocity: Double = 0.0
 
-    override var motionProfileAcceleration: Double
-        get() = TODO("not implemented")
-        set(value) {TODO("not implemented")}
+    override var motionProfileAcceleration: Double = 0.0
 
     override var useMotionProfileForPosition = false
 

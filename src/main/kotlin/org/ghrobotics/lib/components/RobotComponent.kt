@@ -29,11 +29,14 @@ abstract class RobotComponent : SendableSubsystemBase() {
     var parent: RobotComponent? = null
         private set
 
-    private val _children = mutableListOf<RobotComponent>()
+    protected val _children = mutableListOf<RobotComponent>()
 
     private val loopDeltaTime = DeltaTime()
 
-    protected fun addComponent(component: RobotComponent) {
+    /**
+     * Add a child component to this component
+     */
+    fun addComponent(component: RobotComponent) {
         if (component.parent != null) throw IllegalStateException("Component already has been added to another parent")
         component.parent = this
         _children += component

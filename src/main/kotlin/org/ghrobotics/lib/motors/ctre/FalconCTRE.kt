@@ -108,4 +108,18 @@ abstract class FalconCTRE<T : SIUnit<T>>(
             val limitNormal: LimitSwitchNormal
     )
 
+    open fun setMinMaxOutput(config : OutputConfig) {
+        motorController.configPeakOutputForward(config.maxOutput, 0)
+        motorController.configPeakOutputReverse(config.minOutput, 0)
+    }
+
+    data class OutputConfig(
+            val minOutput: Double = 0.0,
+            val maxOutput: Double = 0.0
+    )
+
+    private val fullOutputPower = OutputConfig(-1.0, 1.0)
+
+    fun setFullOutputPower() = setMinMaxOutput(fullOutputPower)
+
 }
