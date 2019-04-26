@@ -68,6 +68,8 @@ class Rotation2d : SIUnit<Rotation2d> {
 
     override fun hashCode() = this.value.hashCode()
 
+    fun inverse() = Rotation2d(cos, -sin, false)
+
     companion object {
         val kZero = Rotation2d(0.0)
         val kRotation = 360.degree

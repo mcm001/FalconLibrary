@@ -76,4 +76,12 @@ data class Translation2d constructor(
     }
 
     operator fun unaryMinus() = Translation2d(-x, -y)
+
+    val inverse = Translation2d(-x, -y)
+
+    val direction: Rotation2d = Rotation2d(x, y, true)
+
+    infix fun rotateBy(rotation: Rotation2d) = Translation2d(x * rotation.cos - y * rotation.sin, x * rotation.sin + y * rotation.cos)
+
+
 }

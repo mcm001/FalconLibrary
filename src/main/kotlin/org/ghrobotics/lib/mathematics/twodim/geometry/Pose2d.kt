@@ -76,6 +76,15 @@ data class Pose2d(
         return twist.dy epsilonEquals 0.0 && twist.dTheta.value epsilonEquals 0.0
     }
 
+    val inverse : Pose2d
+        get() {
+            val rotationInverted = rotation.inverse()
+            return Pose2d(
+                    translation.inverse rotateBy rotation.inverse(),
+                    rotationInverted
+            )
+        }
+
     override fun interpolate(endValue: Pose2d, t: Double): Pose2d {
         if (t <= 0) {
             return Pose2d(this.translation, this.rotation)

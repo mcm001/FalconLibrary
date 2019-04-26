@@ -15,6 +15,9 @@ abstract class RobotComponent : SendableSubsystemBase() {
     var localVelocityTransform = Transform()
         protected set
 
+    var localAccelerationTransform = Transform()
+        protected set
+
     // World Transforms
 
     var worldTransform = Transform()
@@ -47,6 +50,7 @@ abstract class RobotComponent : SendableSubsystemBase() {
         val dt = loopDeltaTime.updateTime(Timer.getFPGATimestamp())
 
         val lastWorldVelocityTransform = this.worldVelocityTransform
+        val lastLocalVelocityTransform = this.localVelocityTransform
 
         val parent = this.parent
         if (parent != null) {
@@ -59,6 +63,7 @@ abstract class RobotComponent : SendableSubsystemBase() {
 
         if (dt > 0.0) {
             worldAccelerationTransform = (worldVelocityTransform - lastWorldVelocityTransform) / dt
+            localAccelerationTransform = (localVelocityTransform - lastLocalVelocityTransform) / dt
         }
 
         _children.forEach(RobotComponent::updateState)
