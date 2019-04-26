@@ -37,7 +37,7 @@ abstract class DriveComponent(
             Quaternion.fromEulerAngles(robotPose.rotation.radian, 0.0, 0.0)
         )
 
-        localVelocityTransform = (lastLocalTransform - localTransform) / dt
+        localVelocityTransform = (localTransform - lastLocalTransform) / dt
 
         super.updateState()
     }
