@@ -155,8 +155,6 @@ class SwerveModuleComponent(
                 Quaternion.fromAxisAngle(angle.radian, moduleAxis)
         )
 
-        println("local velocity transform invocation \t | \t velocity vector $moduleVelocityVector \t|\t$toReturn")
-
         toReturn
     }
 
