@@ -8,15 +8,17 @@ import edu.wpi.first.wpilibj.Timer
 import org.ghrobotics.lib.mathematics.kEpsilon
 import org.ghrobotics.lib.mathematics.threedim.geometry.Pose3d
 import org.ghrobotics.lib.mathematics.threedim.geometry.Quaternion
+import org.ghrobotics.lib.mathematics.threedim.geometry.Transform
 import org.ghrobotics.lib.mathematics.threedim.geometry.Translation3d
 import org.ghrobotics.lib.mathematics.twodim.geometry.Pose2d
 import org.ghrobotics.lib.mathematics.twodim.geometry.Translation2d
 import org.ghrobotics.lib.mathematics.units.SILengthConstants
 import org.ghrobotics.lib.mathematics.units.radian
 import org.ghrobotics.lib.physics.OblargianMotorModel
+import org.ghrobotics.lib.utils.Source
 
 
-abstract class SwerveModuleComponent(
+class SwerveModuleComponent(
         val azumithMotor: FalconMotor<Rotation2d>,
         val driveMotor: FalconMotor<Length>,
         val azumithModel: OblargianMotorModel,
@@ -39,7 +41,8 @@ abstract class SwerveModuleComponent(
     val angularVelocity : Double // in rad/sec
         get() = azumithMotor.encoder.velocity
 
-    val linearVelocity = driveMotor.encoder.velocity
+    val linearVelocity
+        get() = driveMotor.encoder.velocity
 
     var driveDistance : Double
         get() = driveMotor.encoder.position
@@ -136,31 +139,25 @@ abstract class SwerveModuleComponent(
         position = modulePosition
     }
 
-    var lastUpdateTimestamp = Timer.getFPGATimestamp()
-    var lastAzumithVelocity = 0.0
-    var azumithAcceleration = 0.0
-
-    override fun updateState() {
-
-        val updateTimestamp = Timer.getFPGATimestamp()
-        val azimuthVelocity = angularVelocity
-
-        azumithAcceleration = (azimuthVelocity - lastAzumithVelocity) / (updateTimestamp - lastUpdateTimestamp)
-
-        lastUpdateTimestamp = updateTimestamp
-        lastAzumithVelocity = azimuthVelocity
-
-        localTransform = Pose3d(
+    override val localTransformSource = {
+        Pose3d(
                 Translation3d.kZero,
                 Quaternion.fromAxisAngle(angle.radian, moduleAxis)
         )
+    }
 
-        localVelocityTransform = Pose3d(
-                Translation3d.kZero,
+    override var localVelocityTransformSource = {
+
+        val moduleVelocityVector = Translation2d(linearVelocity, angle.radian)
+
+        val toReturn = Pose3d(
+                Translation3d(moduleVelocityVector.x, 0.0, moduleVelocityVector.y),
                 Quaternion.fromAxisAngle(angle.radian, moduleAxis)
         )
 
-        super.updateState()
+        println("local velocity transform invocation \t | \t velocity vector $moduleVelocityVector \t|\t$toReturn")
+
+        toReturn
     }
 
     open fun customizeWantedState(wantedState: State): State = wantedState
@@ -180,12 +177,12 @@ abstract class SwerveModuleComponent(
                 driveMotor.setNeutral()
             }
             is State.PercentOutput -> {
-                azumithMotor.setDutyCycle(wantedState.wantedState.angle, azumithFeedForward)
+                azumithMotor.setPosition(wantedState.wantedState.angle, azumithFeedForward)
                 driveMotor.setDutyCycle(wantedState.wantedState.demand, wantedState.wantedState.arbFF)
             }
             is State.Velocity -> {
-                azumithMotor.setVelocity(wantedState.wantedState.angle, azumithFeedForward)
-                driveMotor.setDutyCycle(wantedState.wantedState.demand, wantedState.wantedState.arbFF)
+                azumithMotor.setPosition(wantedState.wantedState.angle, azumithFeedForward)
+                driveMotor.setVelocity(wantedState.wantedState.demand, wantedState.wantedState.arbFF)
             }
             is State.CustomState -> wantedState.update()
         }

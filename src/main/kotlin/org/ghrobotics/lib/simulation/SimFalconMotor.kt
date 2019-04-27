@@ -38,8 +38,10 @@ class SimFalconMotor<T : SIUnit<T>> : FalconMotor<T> {
     }
 
     override fun setDutyCycle(dutyCycle: Double, arbitraryFeedForward: Double) {
-        TODO("not implemented")
+        this.percentOutput = dutyCycle + arbitraryFeedForward / 12
     }
+
+    var percentOutput = 0.0
 
     override fun setVelocity(velocity: Double, arbitraryFeedForward: Double) {
         this.velocity = velocity
