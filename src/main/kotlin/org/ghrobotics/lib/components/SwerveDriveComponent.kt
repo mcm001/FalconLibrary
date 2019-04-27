@@ -9,11 +9,13 @@ import org.ghrobotics.lib.physics.SwerveDriveKinematics
 import org.ghrobotics.lib.utils.DeltaTime
 
 abstract class SwerveDriveComponent(
-        private val modules: List<SwerveModuleComponent>,
-        private val drivetrainHeightFromGround: Double,
-        private val kinematics: SwerveDriveKinematics,
-        private val localization: SwerveDriveLocalization
-) : RobotComponent(), EmergencyHandleable {
+        private val drivetrainHeightFromGround: Double
+) : RobotComponent() {
+
+    abstract val modules: List<SwerveModuleComponent>
+
+    abstract val kinematics: SwerveDriveKinematics
+    abstract val localization: SwerveDriveLocalization
 
     var wantedState: State = State.Nothing
     var currentState: State = State.Nothing
