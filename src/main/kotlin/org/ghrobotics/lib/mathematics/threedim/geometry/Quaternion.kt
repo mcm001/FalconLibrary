@@ -17,6 +17,13 @@ data class Quaternion(
     val y: Double,
     val z: Double
 ) {
+
+    /**
+     * Euler angles are in a pitch, yaw, roll form. That is,
+     * pitch would be on the x axis
+     * yaw would be on the y axis
+     * roll would be on the z axis
+     */
     val eulerAngles: Translation3d
         get() {
             val sqw = w * w

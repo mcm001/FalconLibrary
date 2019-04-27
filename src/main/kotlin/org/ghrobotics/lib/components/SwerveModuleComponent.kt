@@ -30,7 +30,7 @@ class SwerveModuleComponent(
         val kYScrubFactor: Double,
         val kSimulateReversedCarpet: Boolean,
         val standardCarpetDirection: Boolean,
-        val moduleAxis: Translation3d = Translation3d(0.0, 1.0, 0.0)
+        val moduleAxis: Translation3d = Translation3d(0.0, 0.0, 1.0)
 ) : RobotComponent() {
 
 

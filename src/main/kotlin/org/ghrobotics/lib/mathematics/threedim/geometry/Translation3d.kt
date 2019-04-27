@@ -3,9 +3,13 @@ package org.ghrobotics.lib.mathematics.threedim.geometry
 import org.ghrobotics.lib.mathematics.epsilonEquals
 
 /**
- * +X to the right
- * +Y straight up
- * +Z axis toward viewer
+ * +[x] to the right,
+ * +[y] straight up,
+ * +[z] axis toward viewer.
+ *
+ * Imagine looking out of a camera mounted on the front of the robot.
+ * +[x] is left/right in your fov, +[y] would be up/down translation, and
+ * +[z] is towards you.
  */
 data class Translation3d(
     val x: Double,
