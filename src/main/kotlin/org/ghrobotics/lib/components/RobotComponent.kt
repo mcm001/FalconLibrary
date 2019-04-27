@@ -3,6 +3,7 @@ package org.ghrobotics.lib.components
 import edu.wpi.first.wpilibj.Timer
 import org.ghrobotics.lib.mathematics.threedim.geometry.Transform
 import org.ghrobotics.lib.utils.DeltaTime
+import org.ghrobotics.lib.utils.Source
 import org.team5940.pantry.exparimental.command.SendableSubsystemBase
 
 abstract class RobotComponent : SendableSubsystemBase() {
@@ -17,6 +18,10 @@ abstract class RobotComponent : SendableSubsystemBase() {
 
     var localAccelerationTransform = Transform()
         protected set
+
+    open val localTransformSource: Source<Transform> = {Transform()}
+
+    open val localVelocityTransformSource: Source<Transform> = {Transform()}
 
     // World Transforms
 
@@ -51,6 +56,11 @@ abstract class RobotComponent : SendableSubsystemBase() {
 
         val lastWorldVelocityTransform = this.worldVelocityTransform
         val lastLocalVelocityTransform = this.localVelocityTransform
+
+        localTransform = localTransformSource()
+        localVelocityTransform = localVelocityTransformSource()
+
+        println("new local vel transform is $localVelocityTransform")
 
         val parent = this.parent
         if (parent != null) {
