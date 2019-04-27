@@ -4,7 +4,7 @@ import org.ghrobotics.lib.mathematics.units.Length
 import org.ghrobotics.lib.mathematics.units.Rotation2d
 import org.ghrobotics.lib.motors.FalconMotor
 import com.team1323.lib.util.Util
-import com.team254.lib.physics.DCMotorTransmission
+import edu.wpi.first.wpilibj.Timer
 import org.ghrobotics.lib.mathematics.kEpsilon
 import org.ghrobotics.lib.mathematics.threedim.geometry.Pose3d
 import org.ghrobotics.lib.mathematics.threedim.geometry.Quaternion
@@ -38,6 +38,8 @@ abstract class SwerveModuleComponent(
 
     val angularVelocity : Double // in rad/sec
         get() = azumithMotor.encoder.velocity
+
+    val linearVelocity = driveMotor.encoder.velocity
 
     var driveDistance : Double
         get() = driveMotor.encoder.position
@@ -134,7 +136,19 @@ abstract class SwerveModuleComponent(
         position = modulePosition
     }
 
+    var lastUpdateTimestamp = Timer.getFPGATimestamp()
+    var lastAzumithVelocity = 0.0
+    var azumithAcceleration = 0.0
+
     override fun updateState() {
+
+        val updateTimestamp = Timer.getFPGATimestamp()
+        val azimuthVelocity = angularVelocity
+
+        azumithAcceleration = (azimuthVelocity - lastAzumithVelocity) / (updateTimestamp - lastUpdateTimestamp)
+
+        lastUpdateTimestamp = updateTimestamp
+        lastAzumithVelocity = azimuthVelocity
 
         localTransform = Pose3d(
                 Translation3d.kZero,
@@ -143,7 +157,7 @@ abstract class SwerveModuleComponent(
 
         localVelocityTransform = Pose3d(
                 Translation3d.kZero,
-                Quaternion.fromAxisAngle(angularVelocity, moduleAxis)
+                Quaternion.fromAxisAngle(angle.radian, moduleAxis)
         )
 
         super.updateState()
@@ -193,7 +207,7 @@ abstract class SwerveModuleComponent(
 
     }
 
-    val azumithFeedForward = azumithModel.getFeedForward(localVelocityTransform.rotation.eulerAngles.y, localAccelerationTransform.rotation.eulerAngles.y)
+    val azumithFeedForward = azumithModel.getFeedForward(azumithMotor.encoder.velocity, localAccelerationTransform.rotation.eulerAngles.y)
 
     data class ModuleState(
             val angle: Double,
