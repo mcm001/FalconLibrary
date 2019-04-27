@@ -60,8 +60,6 @@ abstract class RobotComponent : SendableSubsystemBase() {
         localTransform = localTransformSource()
         localVelocityTransform = localVelocityTransformSource()
 
-        println("new local vel transform is $localVelocityTransform")
-
         val parent = this.parent
         if (parent != null) {
             worldTransform = parent.worldTransform + localTransform
