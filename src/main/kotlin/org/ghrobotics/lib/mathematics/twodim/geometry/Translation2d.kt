@@ -13,12 +13,16 @@
 
 package org.ghrobotics.lib.mathematics.twodim.geometry
 
+import com.team1323.lib.util.Util
 import org.ghrobotics.lib.mathematics.lerp
 import org.ghrobotics.lib.mathematics.units.Length
 import org.ghrobotics.lib.mathematics.units.Rotation2d
 import org.ghrobotics.lib.mathematics.units.degree
 import org.ghrobotics.lib.mathematics.units.meter
 import org.ghrobotics.lib.types.VaryInterpolatable
+import com.team254.lib.geometry.Translation2d.dot
+import org.ghrobotics.lib.mathematics.kEpsilon
+
 
 fun Rotation2d.toTranslation() = Translation2d(cos, sin)
 
@@ -28,6 +32,11 @@ data class Translation2d constructor(
 ) : VaryInterpolatable<Translation2d> {
 
     constructor() : this(0.0, 0.0)
+
+    constructor(start: Translation2d, end: Translation2d) : this(
+            end.x - start.x,
+            end.y - start.y
+    )
 
     constructor(
         x: Length = 0.meter,
@@ -79,6 +88,67 @@ data class Translation2d constructor(
 
     val inverse
         get() = Translation2d(-x, -y)
+
+    companion object {
+        fun dot(a: Translation2d, b: Translation2d): Double {
+            return a.x * b.x + a.y * b.y
+        }
+    }
+
+    /**
+     * https://stackoverflow.com/a/1167047/6627273
+     * A point D is considered "within" an angle ABC when
+     * cos(DBM) > cos(ABM)
+     * where M is the midpoint of AC, so ABM is half the angle ABC.
+     * The cosine of an angle can be computed as the dot product of two normalized
+     * vectors in the directions of its sides.
+     * Note that this definition of "within" does not include points that lie on
+     * the sides of the given angle.
+     * If `vertical` is true, then check not within the given angle, but within the
+     * image of that angle rotated by pi about its vertex.
+     *
+     * @param Translation2d A
+     * A point on one side of the angle.
+     * @param Translation2d B
+     * The vertex of the angle.
+     * @param Translation2d C
+     * A point on the other side of the angle.
+     * @param boolean vertical
+     * Whether to check in the angle vertical to the one given
+     * @return Whether this translation is within the given angle.
+     * @author Joseph Reed
+     */
+    fun isWithinAngle(A: Translation2d, B: Translation2d, C: Translation2d, vertical: Boolean): Boolean {
+        val M = A.interpolate(C, 0.5) // midpoint
+        var m = Translation2d(B, M).normalize() // mid-vector
+        var a = Translation2d(B, A).normalize() // side vector
+        val d = Translation2d(B, this).normalize() // vector to here
+        if (vertical) {
+            m = m.inverse
+            a = a.inverse
+        }
+        return Translation2d.dot(d, m) > Translation2d.dot(a, m)
+    }
+
+    /** Assumes an angle centered at the origin.  */
+    fun isWithinAngle(A: Translation2d, C: Translation2d, vertical: Boolean): Boolean {
+        return isWithinAngle(A, Translation2d(), C, vertical)
+    }
+    fun isWithinAngle(A: Translation2d, C: Translation2d): Boolean {
+        return isWithinAngle(A, C, false)
+    }
+
+    fun normalize(): Translation2d {
+        return if (epsilonEquals(Translation2d(), kEpsilon)) this else this * (1.0 / norm)
+    }
+
+    fun epsilonEquals(other: Translation2d, epsilon: Double): Boolean {
+        return Util.epsilonEquals(x, other.x, epsilon) && Util.epsilonEquals(y, other.y, epsilon)
+    }
+
+    infix fun equals(other: Translation2d): Boolean {
+        return if (other == null || other !is Translation2d) false else distance(other) < kEpsilon
+    }
 
     val direction: Rotation2d = Rotation2d(x, y, true)
 

@@ -30,7 +30,7 @@ class SwerveModuleComponent(
         val kYScrubFactor: Double,
         val kSimulateReversedCarpet: Boolean,
         val standardCarpetDirection: Boolean,
-        val moduleAxis: Translation3d = Translation3d(0.0, 0.0, 1.0)
+        val moduleAxis: Translation3d = Translation3d(0.0, 1.0, 0.0)
 ) : RobotComponent() {
 
 
@@ -192,7 +192,11 @@ class SwerveModuleComponent(
 
         object Nothing: State()
 
-        class PercentOutput(val wantedState: ModuleState) : State()
+        class PercentOutput(val wantedState: ModuleState) : State() {
+            constructor(angle: Double, demand: Double, arbFF: Double = 0.0) : this(
+                    ModuleState(angle, demand, arbFF)
+            )
+        }
 
         class Velocity(val wantedState: ModuleState) : State()
 

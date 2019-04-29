@@ -17,6 +17,12 @@ abstract class SwerveDriveComponent(
     abstract val kinematics: SwerveDriveKinematics
     abstract val localization: SwerveDriveLocalization
 
+    init {
+        modules.forEach{
+            this.addComponent(it)
+        }
+    }
+
     var wantedState: State = State.Nothing
     var currentState: State = State.Nothing
         private set
