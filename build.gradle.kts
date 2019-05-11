@@ -18,7 +18,7 @@ repositories {
 }
 
 group = "com.github.mcm001"
-version = "0.0.1"
+version = "0.0.2"
 
 dependencies {
     // Kotlin Standard Library and Coroutines
