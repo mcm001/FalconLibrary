@@ -15,6 +15,7 @@ repositories {
     jcenter()
     maven { setUrl("http://dl.bintray.com/kyonifer/maven") }
     maven { setUrl("https://jitpack.io") }
+    maven { setUrl("https://maven.woke.engineer/") } // wpilib mirror
 }
 
 group = "com.github.mcm001"
