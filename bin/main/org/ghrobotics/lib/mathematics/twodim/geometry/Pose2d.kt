@@ -35,6 +35,11 @@ data class Pose2d(
         rotation: Rotation2d = 0.degree
     ) : this(Translation2d(x, y), rotation)
 
+    constructor(x: Double, y: Double, rotation: Rotation2d) : this(
+            Translation2d(x, y),
+            rotation
+    )
+
     val twist: Twist2d
         get() {
             val dtheta = rotation.radian

@@ -1,6 +1,7 @@
 package org.ghrobotics.lib.motors.ctre
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
+import com.ctre.phoenix.motorcontrol.SensorCollection
 import com.ctre.phoenix.motorcontrol.can.TalonSRX
 import org.ghrobotics.lib.mathematics.units.ElectricCurrent
 import org.ghrobotics.lib.mathematics.units.SIUnit
@@ -18,6 +19,8 @@ class FalconSRX<T : SIUnit<T>>(
     var feedbackSensor by Delegates.observable(FeedbackDevice.QuadEncoder) { _, _, newValue ->
         talonSRX.configSelectedFeedbackSensor(newValue, 0, 0)
     }
+
+    val sensorCollection: SensorCollection get() = talonSRX.sensorCollection
 
     fun configCurrentLimit(enabled: Boolean, config: CurrentLimitConfig) {
         talonSRX.enableCurrentLimit(enabled)

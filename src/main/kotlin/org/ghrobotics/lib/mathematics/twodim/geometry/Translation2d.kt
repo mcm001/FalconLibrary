@@ -21,6 +21,7 @@ import org.ghrobotics.lib.mathematics.units.degree
 import org.ghrobotics.lib.mathematics.units.meter
 import org.ghrobotics.lib.types.VaryInterpolatable
 import com.team254.lib.geometry.Translation2d.dot
+import org.apache.commons.math3.geometry.euclidean.threed.Rotation
 import org.ghrobotics.lib.mathematics.kEpsilon
 
 
@@ -93,6 +94,8 @@ data class Translation2d constructor(
         fun dot(a: Translation2d, b: Translation2d): Double {
             return a.x * b.x + a.y * b.y
         }
+        fun fromRotation2d(angle: Double) : Translation2d = Translation2d(Math.cos(angle), Math.sin(angle))
+        fun fromRotation2d(angle: Double, magnitude: Double) : Translation2d = fromRotation2d(angle) * magnitude
     }
 
     /**
@@ -153,6 +156,5 @@ data class Translation2d constructor(
     val direction: Rotation2d = Rotation2d(x, y, true)
 
     infix fun rotateBy(rotation: Rotation2d) = Translation2d(x * rotation.cos - y * rotation.sin, x * rotation.sin + y * rotation.cos)
-
 
 }
