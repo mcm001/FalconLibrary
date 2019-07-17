@@ -11,6 +11,9 @@ import org.ghrobotics.lib.mathematics.kEpsilon
 /**
  * Model of a DC motor rotating a shaft.  All parameters refer to the output (e.g. should already consider gearing
  * and efficiency losses).  The motor is assumed to be symmetric forward/reverse.
+ * @param speedPerVolt in rad/sec per V at no load
+ * @param torquePerVolt in N m per V at stall
+ * @param frictionVoltage in V
  */
 class DCMotorTransmission(
     val speedPerVolt: Double, // rad/s per V (no load),

@@ -4,7 +4,11 @@ package com.team254.lib.physics
 
 import org.ghrobotics.lib.mathematics.epsilonEquals
 import org.ghrobotics.lib.mathematics.kEpsilon
+import org.ghrobotics.lib.mathematics.max
+import org.ghrobotics.lib.mathematics.min
 import org.ghrobotics.lib.types.CSVWritable
+import java.lang.Math.abs
+import java.lang.Math.signum
 import java.text.DecimalFormat
 import java.util.*
 
@@ -18,41 +22,35 @@ import java.util.*
 /**
  * Dynamic model a differential drive robot.  Note: to simplify things, this math assumes the center of mass is
  * coincident with the kinematic center of rotation (e.g. midpoint of the center axle).
+ * @param mass Equivalent mass when accelerating purely linearly, in kg.
+ * This is equivalent in that it also absorbs the effects of drivetrain inertia.
+ * Measure by doing drivetrain acceleration characterizaton in a straight line.
+ *
+ * @param moi Equivalent moment of inertia when accelerating purely angularly in kg m^2.
+ * This is equivalent in that it also absorbs the effects of drivetrain inertia.
+ * Measure by doing drivetrain acceleration characterization while turing in place.
+ *
+ * @param angularDrag Drag torque (proportional to angular velocity) that resists turning in Nm/rad/s.
+ * Empirical testing of 254's drivebase showed that there was an unexplained loss in torque ~proportional to angular
+ * velocity, likely due to scrub of wheels.
+ * NOTE: this may not be a purely linear tern, and 254 has done limited testing, but this factor may help a model
+ * to better match reality.
+ *
+ * @param wheelRadius The radius of the wheel
+ *
+ * @param effectiveWheelBaseRadius Effective kinematic wheelbase radius. Might be larger than theoretical to compensate for skid steer. Measure by
+ * turning the robot in place several times and figuring out what the equivalent wheel base radius is.
+ *
+ * @param leftTransmission the left side of the drivetrain's DCMotorTransmission
+ * @param rightTransmission the rigth side of the drivetrain's DCMotorTransmission
  */
 @Suppress("LongParameterList")
 class DifferentialDrive(
-    /**
-     * Equivalent mass when accelerating purely linearly, in kg.
-     * This is equivalent in that it also absorbs the effects of drivetrain inertia.
-     * Measure by doing drivetrain acceleration characterizaton in a straight line.
-     */
     private val mass: Double,
-    /**
-     * Equivalent moment of inertia when accelerating purely angularly in kg m^2.
-     * This is equivalent in that it also absorbs the effects of drivetrain inertia.
-     * Measure by doing drivetrain acceleration characterization while turing in place.
-     */
     private val moi: Double,
-    /**
-     * Drag torque (proportional to angular velocity) that resists turning in Nm/rad/s.
-     * Empirical testing of 254's drivebase showed that there was an unexplained loss in torque ~proportional to angular
-     * velocity, likely due to scrub of wheels.
-     * NOTE: this may not be a purely linear tern, and 254 has done limited testing, but this factor may help a model
-     * to better match reality.
-     */
     private val angularDrag: Double,
-    /**
-     * The radius of the wheel
-     */
     val wheelRadius: Double, // m,
-    /**
-     * Effective kinematic wheelbase radius. Might be larger than theoretical to compensate for skid steer. Measure by
-     * turning the robot in place several times and figuring out what the equivalent wheel base radius is.
-     */
     private val effectiveWheelBaseRadius: Double, // m
-    /**
-     * DC Motor transmission for both sides of the drivetrain.
-     */
     private val leftTransmission: DCMotorTransmission,
     private val rightTransmission: DCMotorTransmission
 ) {
@@ -60,6 +58,8 @@ class DifferentialDrive(
     /**
      * Solve forward kinematics to get chassis motion from wheel motion.
      * Could be either acceleration or velocity.
+     * @param wheelMotion the wheel's velocity or acceleration
+     * @return the chassisState representing chassis motion, either velocity or acceleration
      */
     fun solveForwardKinematics(wheelMotion: WheelState): ChassisState =
         ChassisState(
@@ -70,6 +70,8 @@ class DifferentialDrive(
     /**
      * Solve inverse kinematics to get wheel motion from chassis motion.
      * Could be either acceleration or velocity.
+     * @param chassisMotion the motion of the chassis, either velocity or acceleration
+     * @return the state of the wheels
      */
     fun solveInverseKinematics(chassisMotion: ChassisState): WheelState =
         WheelState(
@@ -79,6 +81,8 @@ class DifferentialDrive(
 
     /**
      * Solve forward dynamics for torques and accelerations.
+     * @param chassisVelocity the velocity of the chassis
+     * @param voltage the voltages that the wheels are currently at (used to determine the sign of kStatic)
      */
     fun solveForwardDynamics(chassisVelocity: ChassisState, voltage: WheelState): DriveDynamics = solveForwardDynamics(
         solveInverseKinematics(chassisVelocity),
@@ -89,18 +93,23 @@ class DifferentialDrive(
 
     /**
      * Get the voltage simply from the Kv and the friction voltage of the transmissions
+     * @param velocities the velocities of the wheels
+     * @return the voltages only factoring in kStatic and kV
      */
     fun getVoltagesFromkV(velocities: WheelState): WheelState {
         return WheelState(
             velocities.left / leftTransmission.speedPerVolt +
-                leftTransmission.frictionVoltage * Math.signum(velocities.left),
+                leftTransmission.frictionVoltage * signum(velocities.left),
             velocities.right / rightTransmission.speedPerVolt +
-                rightTransmission.frictionVoltage * Math.signum(velocities.right)
+                rightTransmission.frictionVoltage * signum(velocities.right)
         )
     }
 
     /**
      * Solve forward dynamics for torques and accelerations.
+     * @param wheelVelocity the velocities of the wheels
+     * @param voltage the voltages that the wheels are currently at (used to determine the sign of kStatic)
+     * @return the DriveDynamics of the drivetrain
      */
     fun solveForwardDynamics(wheelVelocity: WheelState, voltage: WheelState): DriveDynamics {
         val chassisVelocity = solveForwardKinematics(wheelVelocity)
@@ -114,6 +123,12 @@ class DifferentialDrive(
 
     /**
      * Solve forward dynamics for torques and accelerations.
+     * @param wheelVelocity the wheel velocities
+     * @param chassisVelocity the current chassis velocity
+     * @param curvature the current curvature (rate of turn left/right)
+     * @param voltage the current voltage of the motors
+     * @return the DriveDynamics of the drivetrain
+     * @see DriveDynamics
      */
     fun solveForwardDynamics(
         wheelVelocity: WheelState,
@@ -128,12 +143,10 @@ class DifferentialDrive(
         val dcurvature: Double
 
 
-        val leftStationary = wheelVelocity.left epsilonEquals 0.0 && Math.abs(
-            voltage.left
-        ) < leftTransmission.frictionVoltage
-        val rightStationary = wheelVelocity.right epsilonEquals 0.0 && Math.abs(
-            voltage.right
-        ) < rightTransmission.frictionVoltage
+        val leftStationary = wheelVelocity.left epsilonEquals 0.0 && 
+                abs(voltage.left) < leftTransmission.frictionVoltage
+        val rightStationary = wheelVelocity.right epsilonEquals 0.0 && 
+                abs(voltage.right) < rightTransmission.frictionVoltage
 
 
         // Neither side breaks static friction, so we remain stationary.
@@ -183,6 +196,10 @@ class DifferentialDrive(
 
     /**
      * Solve inverse dynamics for torques and voltages
+     * @param chassisVelocity the velocity of the chassis
+     * @param chassisAcceleration the acceleration of the chassis
+     * @return the current dynamics of the chassis
+     * @see DriveDynamics
      */
     fun solveInverseDynamics(chassisVelocity: ChassisState, chassisAcceleration: ChassisState): DriveDynamics {
 
@@ -205,6 +222,10 @@ class DifferentialDrive(
 
     /**
      * Solve inverse dynamics for torques and voltages
+     * @param wheelVelocity the velocity of the wheels
+     * @param wheelAcceleration the acceleration of the wheels
+     * @return the current drive dynamics of the chassis
+     * @see DriveDynamics
      */
     fun solveInverseDynamics(wheelVelocity: WheelState, wheelAcceleration: WheelState): DriveDynamics {
 
@@ -231,6 +252,14 @@ class DifferentialDrive(
 
     /**
      * Solve inverse dynamics for torques and voltages
+     * @param wheelVelocity the wheel velocities
+     * @param chassisVelocity the chassis velocity
+     * @param wheelAcceleration the wheel accelerations
+     * @param chassisAcceleration the chassis acceleration
+     * @param curvature the current curvature of the drivetrain (rate of rotation)
+     * @param dcurvature the derivative of curvature
+     * @return the current dynamics of the chassis
+     * @see DriveDynamics
      */
     fun solveInverseDynamics(
         wheelVelocity: WheelState,
@@ -240,7 +269,6 @@ class DifferentialDrive(
         curvature: Double,
         dcurvature: Double
     ): DriveDynamics {
-
 
         // Determine the necessary torques on the left and right wheels to produce the desired wheel accelerations.
         val wheelTorque = WheelState(
@@ -273,6 +301,9 @@ class DifferentialDrive(
 
     /**
      * Solve for the max absolute velocity that the drivetrain is capable of given a max voltage and curvature
+     * @param curvature the current curvature
+     * @param maxAbsVoltage the maximum voltage that can be applied to the motors
+     * @return the maximum velocity the robot is capable of at the current curvature in meters per second
      */
     fun getMaxAbsVelocity(curvature: Double, /*double dcurvature, */ maxAbsVoltage: Double): Double {
         // Alternative implementation:
@@ -296,18 +327,18 @@ class DifferentialDrive(
         val rightSpeedAtMaxVoltage = rightTransmission.getFreeSpeedAtVoltage(maxAbsVoltage)
 
         if (curvature epsilonEquals 0.0) {
-            return wheelRadius * Math.min(leftSpeedAtMaxVoltage, rightSpeedAtMaxVoltage)
+            return wheelRadius * min(leftSpeedAtMaxVoltage, rightSpeedAtMaxVoltage)
         }
         if (java.lang.Double.isInfinite(curvature)) {
             // Turn in place.  Return value meaning becomes angular velocity.
-            val wheelSpeed = Math.min(leftSpeedAtMaxVoltage, rightSpeedAtMaxVoltage)
-            return Math.signum(curvature) * wheelRadius * wheelSpeed / effectiveWheelBaseRadius
+            val wheelSpeed = min(leftSpeedAtMaxVoltage, rightSpeedAtMaxVoltage)
+            return signum(curvature) * wheelRadius * wheelSpeed / effectiveWheelBaseRadius
         }
 
         val rightSpeedIfLeftMax =
             leftSpeedAtMaxVoltage * (effectiveWheelBaseRadius * curvature + 1.0) / (1.0 - effectiveWheelBaseRadius * curvature)
 
-        if (Math.abs(rightSpeedIfLeftMax) <= rightSpeedAtMaxVoltage + kEpsilon) {
+        if (abs(rightSpeedIfLeftMax) <= rightSpeedAtMaxVoltage + kEpsilon) {
             // Left max is active constraint.
             return wheelRadius * (leftSpeedAtMaxVoltage + rightSpeedIfLeftMax) / 2.0
         }
@@ -317,13 +348,20 @@ class DifferentialDrive(
         // Right at max is active constraint.
         return wheelRadius * (rightSpeedAtMaxVoltage + leftSpeedIfRightMax) / 2.0
     }
-
-
+    
     data class MinMax(val min: Double, val max: Double)
 
     // Curvature is redundant here in the case that chassisVelocity is not purely angular.  It is the responsibility of
     // the caller to ensure that curvature = angular vel / linear vel in these cases.
+
     @Suppress("ComplexMethod", "NestedBlockDepth")
+            /**
+             * Get the min/max accelerations
+             * @param chassisVelocity the velocity of the chassis
+             * @param curvature the current curvature, or angular vel / linear vel, of the chassis
+             * @param maxAbsVoltage the maximum voltage to apply
+             * @return the min/max accelerations in meters per second squared
+             */
     fun getMinMaxAcceleration(
         chassisVelocity: ChassisState,
         curvature: Double, /*double dcurvature,*/
@@ -367,7 +405,7 @@ class DifferentialDrive(
                         (linearTerm + angularTerm)
                 }
                 val variableVoltage = variableTransmission.getVoltageForTorque(wheelVelocities[!left], variableTorque)
-                if (Math.abs(variableVoltage) <= maxAbsVoltage + kEpsilon) {
+                if (abs(variableVoltage) <= maxAbsVoltage + kEpsilon) {
                     val accel = if (java.lang.Double.isInfinite(curvature)) {
                         (if (left) -1.0 else 1.0) * (fixedTorque - variableTorque) *
                             effectiveWheelBaseRadius / (moi * wheelRadius) - dragTorque / moi
@@ -375,8 +413,8 @@ class DifferentialDrive(
                     } else {
                         (fixedTorque + variableTorque) / (mass * wheelRadius)
                     }
-                    min = Math.min(min, accel)
-                    max = Math.max(max, accel)
+                    min = min(min, accel)
+                    max = max(max, accel)
                 }
             }
         }
@@ -385,17 +423,13 @@ class DifferentialDrive(
 
     /**
      * Can refer to velocity or acceleration depending on context.
+     * @param linear the linear component of the chassis state
+     * @param angular the angluar component of the chassis state
      */
-    class ChassisState {
-        var linear: Double = 0.toDouble()
-        var angular: Double = 0.toDouble()
-
-        constructor(linear: Double, angular: Double) {
-            this.linear = linear
-            this.angular = angular
-        }
-
-        constructor()
+    data class ChassisState(
+            val linear: Double = 0.0,
+            val angular: Double = 0.0
+    ) {
 
         override fun toString(): String {
             val fmt = DecimalFormat("#0.000")
@@ -415,8 +449,10 @@ class DifferentialDrive(
 
     /**
      * Can refer to velocity, acceleration, torque, voltage, etc., depending on context.
+     * @param left the value of the left as a Double
+     * @param right the value of the right as a Double
      */
-    class WheelState(val left: Double, val right: Double) {
+    data class WheelState(val left: Double, val right: Double) {
         constructor() : this(0.0, 0.0)
 
         operator fun get(isLeft: Boolean) =  if (isLeft) left else right
@@ -429,8 +465,16 @@ class DifferentialDrive(
 
     /**
      * Full state dynamics of the drivetrain
+     * @param curvature in inverse meters
+     * @param dcurvature in inverse meters squared
+     * @param chassisVelocity the chassis velocity in meters per second
+     * @param chassisAcceleration the acceleration of the chassis, in meters per second squared
+     * @param wheelVelocity the wheel velocities in radians per
+     * @param wheelAcceleration the wheel accelerations in radians per second squared
+     * @param voltage the voltages of the wheels in volts
+     * @param wheelTorque the torques of the wheels in Newton meters
      */
-    class DriveDynamics(
+    data class DriveDynamics(
         val curvature: Double, // m^-1
         val dcurvature: Double, // m^-2
         val chassisVelocity: ChassisState, // m/s
