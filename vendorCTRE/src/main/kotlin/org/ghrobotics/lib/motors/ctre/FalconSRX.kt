@@ -10,12 +10,7 @@ package org.ghrobotics.lib.motors.ctre
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice
 import com.ctre.phoenix.motorcontrol.can.TalonSRX
-import org.ghrobotics.lib.mathematics.units.Ampere
-import org.ghrobotics.lib.mathematics.units.SIKey
-import org.ghrobotics.lib.mathematics.units.SIUnit
-import org.ghrobotics.lib.mathematics.units.Second
-import org.ghrobotics.lib.mathematics.units.amp
-import org.ghrobotics.lib.mathematics.units.millisecond
+import org.ghrobotics.lib.mathematics.units.*
 import org.ghrobotics.lib.mathematics.units.nativeunit.NativeUnitModel
 import kotlin.properties.Delegates
 
@@ -33,9 +28,9 @@ class FalconSRX<K : SIKey>(
     fun configCurrentLimit(enabled: Boolean, config: CurrentLimitConfig) {
         talonSRX.enableCurrentLimit(enabled)
         if (enabled) {
-            talonSRX.configPeakCurrentLimit(config.peakCurrentLimit.amp.toInt())
-            talonSRX.configPeakCurrentDuration(config.peakCurrentLimitDuration.millisecond.toInt())
-            talonSRX.configContinuousCurrentLimit(config.continuousCurrentLimit.amp.toInt())
+            talonSRX.configPeakCurrentLimit(config.peakCurrentLimit.inAmps().toInt())
+            talonSRX.configPeakCurrentDuration(config.peakCurrentLimitDuration.inMilliseconds().toInt())
+            talonSRX.configContinuousCurrentLimit(config.continuousCurrentLimit.inAmps().toInt())
         }
     }
 
