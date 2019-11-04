@@ -16,16 +16,21 @@ class LTVUnicycleController(
     private val kY_1: Double,
     private val kTheta: Double
 ) {
+
     private var poseError = Pose2d()
     var poseTolerance = Pose2d()
 
-    fun atReference(): Boolean {
-        val eTranslate = this.poseError.translation
-        val eRotate = this.poseError.rotation
-        val tolTranslate = this.poseTolerance.translation
-        val tolRotate = this.poseTolerance.rotation
-        return abs(eTranslate.x) < tolTranslate.x && abs(eTranslate.y) < tolTranslate.y && abs(eRotate.radians) < tolRotate.radians
-    }
+//    fun reset() {
+//
+//    }
+
+//    fun atReference(): Boolean {
+//        val eTranslate = this.poseError.translation
+//        val eRotate = this.poseError.rotation
+//        val tolTranslate = this.poseTolerance.translation
+//        val tolRotate = this.poseTolerance.rotation
+//        return abs(eTranslate.x) < tolTranslate.x && abs(eTranslate.y) < tolTranslate.y && abs(eRotate.radians) < tolRotate.radians
+//    }
 
     fun calculate(currentPose: Pose2d, poseRef: Pose2d, linearVelocityRefMetersPerSec: Double, angularVelocityRefRadiansPerSecond: Double): ChassisSpeeds {
         this.poseError = poseRef.relativeTo(currentPose)
@@ -64,3 +69,16 @@ class LTVUnicycleController(
             desiredState.velocityMetersPerSecond * desiredState.curvatureRadPerMeter)
 
 }
+
+/**
+ * A unicycle controller with gains calculated at q = []0.1, 0.1, 10deg] and r = [3.96meters/sec, 180deg/second]
+ *
+ * kx = 2.69103309e+01
+ * ky_0 = 2.62659409e+01
+ * ky_1 = 2.58317598e+01
+ * kTheta = 1.64535273e+01
+ *
+ */
+val defaultLTVUnicycleController get() = LTVUnicycleController(
+    2.69103309e+01, 2.62659409e+01, 2.58317598e+01, 1.64535273e+01
+)
