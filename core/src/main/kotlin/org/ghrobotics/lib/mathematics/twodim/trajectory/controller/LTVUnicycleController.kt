@@ -39,20 +39,33 @@ class LTVUnicycleController(
         val eTheta = this.poseError.rotation.radians
         val heading = currentPose.rotation.radians
 
-        // Rotate error into robot reference frame
-        val rotationMatrix = SimpleMatrix(3, 3, true, doubleArrayOf(
-            cos(heading), sin(heading), 0.0,
-            -sin(heading), cos(heading), 0.0,
-            0.0, 0.0, 1.0
-        ))
+//        // Rotate error into robot reference frame
+//        val rotationMatrix = SimpleMatrix(3, 3, true, doubleArrayOf(
+//            cos(heading), sin(heading), 0.0,
+//            -sin(heading), cos(heading), 0.0,
+//            0.0, 0.0, 1.0
+//        ))
 
         val error = SimpleMatrix(3, 1, false, doubleArrayOf(
             eX, eY, eTheta
         ))
 
-        val u = K(linearVelocityRefMetersPerSec).mult(rotationMatrix.mult(error))
+        val rotatedError = error// rotationMatrix.mult(error)
 
-        return ChassisSpeeds(u[0], 0.0, u[1])
+
+        val u = K(linearVelocityRefMetersPerSec).mult(rotatedError)
+
+        val string = K(linearVelocityRefMetersPerSec).toString()
+
+        val u0 = u[0]
+        val u1 = u[1]
+
+        val x = rotatedError[0]
+        val y = rotatedError[1]
+        val t = rotatedError[2]
+
+        return ChassisSpeeds(u[0] + linearVelocityRefMetersPerSec,
+            0.0, u[1] + angularVelocityRefRadiansPerSecond)
     }
 
     fun K(velocity: Double) = SimpleMatrix(2, 3, true, doubleArrayOf(
@@ -69,16 +82,3 @@ class LTVUnicycleController(
             desiredState.velocityMetersPerSecond * desiredState.curvatureRadPerMeter)
 
 }
-
-/**
- * A unicycle controller with gains calculated at q = []0.1, 0.1, 10deg] and r = [3.96meters/sec, 180deg/second]
- *
- * kx = 2.69103309e+01
- * ky_0 = 2.62659409e+01
- * ky_1 = 2.58317598e+01
- * kTheta = 1.64535273e+01
- *
- */
-val defaultLTVUnicycleController get() = LTVUnicycleController(
-    2.69103309e+01, 2.62659409e+01, 2.58317598e+01, 1.64535273e+01
-)

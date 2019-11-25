@@ -96,4 +96,5 @@ class StateCommandGroupBuilder<T>(private val state: Source<T>) :
         )
 }
 
+@Suppress("UNUSED_PARAMETER", "FunctionName")
 infix fun CommandGroupBase.S3ND(other: Any) = this.schedule()

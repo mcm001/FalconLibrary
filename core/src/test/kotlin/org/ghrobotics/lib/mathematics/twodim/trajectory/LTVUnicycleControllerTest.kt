@@ -1,12 +1,9 @@
 package org.ghrobotics.lib.mathematics.twodim.trajectory
 
-import edu.wpi.first.wpilibj.controller.RamseteController
 import edu.wpi.first.wpilibj.geometry.Twist2d
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds
-import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds
-import edu.wpi.first.wpilibj2.command.RamseteCommand
 import org.ghrobotics.lib.mathematics.twodim.geometry.Pose2d
-import org.ghrobotics.lib.mathematics.twodim.trajectory.controller.defaultLTVUnicycleController
+import org.ghrobotics.lib.mathematics.twodim.trajectory.controller.LTVUnicycleController
 import org.ghrobotics.lib.mathematics.units.*
 import org.ghrobotics.lib.mathematics.units.derived.*
 import org.junit.Test
@@ -23,10 +20,12 @@ class LTVUnicycleControllerTest {
         var robotLocation = Pose2d(0.meters, 0.meters, 0.radians.toRotation2d())
 
         fun update(deltaTime: SIUnit<Second>, wheelSpeeds: ChassisSpeeds) {
+            val linear = wheelSpeeds.vxMetersPerSecond.coerceIn(-4.0, 4.0)
+
             val twist = Twist2d(
-                wheelSpeeds.vxMetersPerSecond * deltaTime.inSeconds(),
+                linear * deltaTime.inSeconds() * 0.8,
                 0.0,
-                (wheelSpeeds.omegaRadiansPerSecond * deltaTime.inSeconds())
+                (wheelSpeeds.omegaRadiansPerSecond * 1.3 * deltaTime.inSeconds())
             )
 
             val newPose = robotLocation.exp(twist)
@@ -39,14 +38,14 @@ class LTVUnicycleControllerTest {
     fun testLTVUnicycleController() {
 
         val trajectory = FalconTrajectoryGenerator.generateTrajectory(
-            listOf(Pose2d(0.feet, 0.feet, 0.degrees), Pose2d(10.feet, 10.feet, 0.degrees)),
+            listOf(Pose2d(0.feet, 0.feet, 0.degrees), Pose2d(10.feet, 10.feet, 0.degrees), Pose2d(10.feet, 10.feet, 180.degrees)),
             FalconTrajectoryConfig(10.feet.velocity, 10.feet.acceleration)
         )
 
-        val controller = defaultLTVUnicycleController // RamseteController(2.0, 0.7) //defaultLTVUnicycleController
+        val controller = LTVUnicycleController(34.86245213903779, 38.91335252924404, 35.7834141375445, 8.470494136209277) // RamseteController(2.0, 0.7) //defaultLTVUnicycleController
         val drive = SimDiffDrive()
 
-        drive.robotLocation = Pose2d(0.feet, 2.feet, -50.degrees)
+        drive.robotLocation = Pose2d(0.feet, 2.feet, 45.degrees)
 
         var currentTime = 0.second
         val deltaTime = 20.milli.seconds
@@ -112,19 +111,6 @@ class LTVUnicycleControllerTest {
 
         chart.addSeries("Trajectory", refXList.toDoubleArray(), refYList.toDoubleArray())
         chart.addSeries("Robot", xList.toDoubleArray(), yList.toDoubleArray())
-
-//        val terror =
-//            TrajectoryGeneratorTest.trajectory.lastState.state.pose.translation - drive.robotLocation.translation
-//        val rerror = TrajectoryGeneratorTest.trajectory.lastState.state.pose.rotation - drive.robotLocation.rotation
-
-//        System.out.printf("%n[Test] X Error: %3.3f, Y Error: %3.3f%n", terror.x.feet, terror.y.feet)
-
-//        assert(terror.norm.value.also {
-//            println("[Test] Norm of Translational Error: $it")
-//        } < 0.50)
-//        assert(rerror.degree.also {
-//            println("[Test] Rotational Error: $it degrees")
-//        } < 5.0)
 
         SwingWrapper(chart).displayChart()
         Thread.sleep(1000000)
